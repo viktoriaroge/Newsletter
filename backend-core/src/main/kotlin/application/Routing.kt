@@ -1,6 +1,6 @@
 package com.viroge.newsletter.application
 
-import com.viroge.newsletter.api.subscriptionRoutes
+import com.viroge.newsletter.api.routes.subscriptionRoutes
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
