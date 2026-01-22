@@ -15,6 +15,7 @@ fun main(args: Array<String>) {
 
 fun Application.module() {
     configureSerialization()
+    configurePageStatus()
 
     val repository = InMemorySubscriberRepository()
     val service = SubscriberService(repository)
