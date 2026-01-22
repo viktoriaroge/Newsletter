@@ -1,0 +1,34 @@
+# ===== OS =====
+.DS_Store
+Thumbs.db
+
+# ===== IntelliJ IDEA =====
+.idea/
+*.iml
+out/
+
+# ===== Gradle =====
+.gradle/
+build/
+
+# ===== Kotlin =====
+*.log
+
+# ===== Node.js =====
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+
+# ===== Docker =====
+*.env
+
+# ===== Misc =====
+.env
