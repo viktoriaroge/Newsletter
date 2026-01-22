@@ -1,8 +1,8 @@
-package com.viroge.newsletter.application
+package com.viroge.newsletter.service
 
 import com.viroge.newsletter.domain.Subscriber
-import com.viroge.newsletter.domain.SubscriberRepository
 import com.viroge.newsletter.domain.SubscriptionStatus
+import com.viroge.newsletter.repository.SubscriberRepository
 import java.time.Instant
 import java.util.UUID
 

@@ -1,4 +1,4 @@
-package com.viroge.newsletter.application
+package com.viroge.newsletter.api
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application

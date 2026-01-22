@@ -1,6 +1,12 @@
 package com.viroge.newsletter.application
 
-import io.ktor.server.application.*
+import com.viroge.newsletter.api.configurePageStatus
+import com.viroge.newsletter.api.routes.configureRouting
+import com.viroge.newsletter.api.configureSerialization
+import com.viroge.newsletter.infrastructure.database.DatabaseFactory
+import com.viroge.newsletter.repository.PostgresSubscriberRepository
+import com.viroge.newsletter.service.SubscriberService
+import io.ktor.server.application.Application
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.EngineMain
 import io.ktor.server.netty.Netty
@@ -14,10 +20,13 @@ fun main(args: Array<String>) {
 }
 
 fun Application.module() {
+
+    DatabaseFactory.init()
+
     configureSerialization()
     configurePageStatus()
 
-    val repository = InMemorySubscriberRepository()
+    val repository = PostgresSubscriberRepository()
     val service = SubscriberService(repository)
 
     configureRouting(service)

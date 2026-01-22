@@ -1,7 +1,7 @@
-package com.viroge.newsletter.application
+package com.viroge.newsletter.repository
 
 import com.viroge.newsletter.domain.Subscriber
-import com.viroge.newsletter.domain.SubscriberRepository
+import com.viroge.newsletter.repository.SubscriberRepository
 import java.util.concurrent.ConcurrentHashMap
 
 class InMemorySubscriberRepository : SubscriberRepository {

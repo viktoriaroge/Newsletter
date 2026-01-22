@@ -22,10 +22,20 @@ dependencies {
     implementation("io.ktor:ktor-server-core")
     implementation("io.ktor:ktor-server-content-negotiation")
     implementation("io.ktor:ktor-serialization-kotlinx-json")
+    implementation("io.ktor:ktor-server-config-yaml")
     implementation("io.ktor:ktor-server-netty")
     implementation("io.ktor:ktor-server-status-pages")
-    implementation("ch.qos.logback:logback-classic:$logback_version")
-    implementation("io.ktor:ktor-server-config-yaml")
+
+    implementation("ch.qos.logback:logback-classic:${logback_version}")
+
+    // Exposed (Kotlin SQL)
+    implementation("org.jetbrains.exposed:exposed-core:0.45.0")
+    implementation("org.jetbrains.exposed:exposed-dao:0.45.0")
+    implementation("org.jetbrains.exposed:exposed-jdbc:0.45.0")
+
+    // PostgreSQL driver
+    implementation("org.postgresql:postgresql:42.7.1")
+
     testImplementation("io.ktor:ktor-server-test-host")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
 }

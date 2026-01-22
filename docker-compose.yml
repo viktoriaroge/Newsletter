@@ -1,0 +1,17 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: newsletter-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: newsletter
+      POSTGRES_USER: newsletter
+      POSTGRES_PASSWORD: newsletter
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

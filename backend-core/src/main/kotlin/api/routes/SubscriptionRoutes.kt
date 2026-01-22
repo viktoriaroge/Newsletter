@@ -2,7 +2,7 @@ package com.viroge.newsletter.api.routes
 
 import com.viroge.newsletter.api.dto.SubscriberRequest
 import com.viroge.newsletter.api.dto.toResponse
-import com.viroge.newsletter.application.SubscriberService
+import com.viroge.newsletter.service.SubscriberService
 import com.viroge.newsletter.api.receiveJsonOrNull
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route

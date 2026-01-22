@@ -1,4 +1,6 @@
-package com.viroge.newsletter.domain
+package com.viroge.newsletter.repository
+
+import com.viroge.newsletter.domain.Subscriber
 
 interface SubscriberRepository {
     fun save(subscriber: Subscriber): Subscriber
