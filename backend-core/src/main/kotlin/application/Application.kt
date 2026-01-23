@@ -7,7 +7,7 @@ import com.viroge.newsletter.api.configureSerialization
 import com.viroge.newsletter.api.configureSwagger
 import com.viroge.newsletter.infrastructure.database.DatabaseFactory
 import com.viroge.newsletter.infrastructure.database.FlywayFactory
-import com.viroge.newsletter.repository.InMemorySubscriberRepository
+import com.viroge.newsletter.repository.PostgresSubscriberRepository
 import com.viroge.newsletter.service.SubscriberService
 import io.ktor.server.application.Application
 import io.ktor.server.engine.embeddedServer
@@ -32,8 +32,7 @@ fun Application.module() {
     configureSwagger()
     configureCors()
 
-    // Using in memory to deploy. Will later link with a DB
-    val repository = InMemorySubscriberRepository()//PostgresSubscriberRepository()
+    val repository = PostgresSubscriberRepository()
     val service = SubscriberService(repository)
 
     configureRoutes(service)
