@@ -33,6 +33,8 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-dao:0.45.0")
     implementation("org.jetbrains.exposed:exposed-jdbc:0.45.0")
 
+    implementation("org.flywaydb:flyway-core:10.4.1")
+
     // PostgreSQL driver
     implementation("org.postgresql:postgresql:42.7.1")
 

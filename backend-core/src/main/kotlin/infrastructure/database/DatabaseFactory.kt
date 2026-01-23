@@ -12,9 +12,5 @@ object DatabaseFactory {
             user = "newsletter",
             password = "newsletter",
         )
-
-        transaction {
-            SchemaUtils.create(SubscribersTable)
-        }
     }
 }

@@ -4,6 +4,7 @@ import com.viroge.newsletter.api.configurePageStatus
 import com.viroge.newsletter.api.routes.configureRouting
 import com.viroge.newsletter.api.configureSerialization
 import com.viroge.newsletter.infrastructure.database.DatabaseFactory
+import com.viroge.newsletter.infrastructure.database.FlywayFactory
 import com.viroge.newsletter.repository.PostgresSubscriberRepository
 import com.viroge.newsletter.service.SubscriberService
 import io.ktor.server.application.Application
@@ -21,6 +22,7 @@ fun main(args: Array<String>) {
 
 fun Application.module() {
 
+    FlywayFactory.migrate()
     DatabaseFactory.init()
 
     configureSerialization()
