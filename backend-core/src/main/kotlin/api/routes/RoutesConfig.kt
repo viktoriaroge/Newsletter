@@ -5,7 +5,7 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Application.configureRouting(service: SubscriberService) {
+fun Application.configureRoutes(service: SubscriberService) {
     routing {
         get("/") {
             call.respondText("Hello World!")
@@ -13,6 +13,6 @@ fun Application.configureRouting(service: SubscriberService) {
         get("/health") {
             call.respondText("OK")
         }
-        subscriptionRoutes(service)
+        configureSubscriptionRoutes(service)
     }
 }

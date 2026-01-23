@@ -1,0 +1,42 @@
+openapi: 3.0.3
+info:
+  title: Newsletter API
+  version: 1.0.0
+
+paths:
+  /v1/subscriptions:
+    post:
+      summary: Subscribe to newsletter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: test@example.com
+      responses:
+        "200":
+          description: Subscription created
+    get:
+      summary: List all subscriptions
+      responses:
+        "200":
+          description: List of subscriptions
+
+  /v1/subscriptions/{email}:
+    get:
+      summary: Get subscription by email
+      parameters:
+        - name: email
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Subscription found
+        "404":
+          description: Subscription not found

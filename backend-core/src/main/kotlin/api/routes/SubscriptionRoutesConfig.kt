@@ -10,7 +10,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 
-fun Route.subscriptionRoutes(service: SubscriberService) {
+fun Route.configureSubscriptionRoutes(service: SubscriberService) {
 
     route("/v1/subscriptions") {
 

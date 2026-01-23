@@ -1,8 +1,9 @@
 package com.viroge.newsletter.application
 
 import com.viroge.newsletter.api.configurePageStatus
-import com.viroge.newsletter.api.routes.configureRouting
+import com.viroge.newsletter.api.routes.configureRoutes
 import com.viroge.newsletter.api.configureSerialization
+import com.viroge.newsletter.api.configureSwagger
 import com.viroge.newsletter.infrastructure.database.DatabaseFactory
 import com.viroge.newsletter.infrastructure.database.FlywayFactory
 import com.viroge.newsletter.repository.PostgresSubscriberRepository
@@ -27,9 +28,10 @@ fun Application.module() {
 
     configureSerialization()
     configurePageStatus()
+    configureSwagger()
 
     val repository = PostgresSubscriberRepository()
     val service = SubscriberService(repository)
 
-    configureRouting(service)
+    configureRoutes(service)
 }
