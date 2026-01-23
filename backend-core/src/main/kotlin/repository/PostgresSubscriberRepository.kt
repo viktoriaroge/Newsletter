@@ -6,6 +6,7 @@ import com.viroge.newsletter.infrastructure.database.SubscribersTable
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 
 class PostgresSubscriberRepository : SubscriberRepository {
@@ -46,4 +47,11 @@ class PostgresSubscriberRepository : SubscriberRepository {
             createdAt = row[SubscribersTable.createdAt],
             confirmedAt = row[SubscribersTable.confirmedAt]
         )
+
+    override fun findAll(): List<Subscriber> =
+        transaction {
+            SubscribersTable
+                .selectAll()
+                .map { rowToSubscriber(it) }
+        }
 }

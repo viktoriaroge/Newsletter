@@ -36,4 +36,11 @@ class SubscriberService(
 
         return repository.save(subscriber)
     }
+
+    fun getByEmail(email: String): Subscriber =
+        repository.findByEmail(email.lowercase())
+            ?: throw NoSuchElementException("Subscription not found")
+
+    fun getAll(): List<Subscriber> =
+        repository.findAll()
 }

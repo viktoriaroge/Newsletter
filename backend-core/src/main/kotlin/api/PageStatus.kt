@@ -14,5 +14,11 @@ fun Application.configurePageStatus() {
                  mapOf("error" to cause.message)
             )
         }
+        exception<NoSuchElementException> { call, cause ->
+            call.respond(
+                HttpStatusCode.NotFound,
+                mapOf("error" to cause.message)
+            )
+        }
     }
 }

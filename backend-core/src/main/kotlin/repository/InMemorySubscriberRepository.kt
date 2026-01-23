@@ -18,4 +18,7 @@ class InMemorySubscriberRepository : SubscriberRepository {
 
     override fun findById(id: String): Subscriber? =
         storage[id]
+
+    override fun findAll(): List<Subscriber> =
+        storage.values.toList()
 }
