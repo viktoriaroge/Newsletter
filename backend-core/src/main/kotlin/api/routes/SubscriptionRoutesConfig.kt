@@ -4,6 +4,7 @@ import com.viroge.newsletter.api.dto.SubscriberRequest
 import com.viroge.newsletter.api.dto.toResponse
 import com.viroge.newsletter.service.SubscriberService
 import com.viroge.newsletter.api.receiveJsonOrNull
+import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
@@ -29,6 +30,15 @@ fun Route.configureSubscriptionRoutes(service: SubscriberService) {
         get {
             val subscribers = service.getAll()
             call.respond(subscribers.map { it.toResponse() })
+        }
+    }
+
+    route("/v1/squarespace") {
+
+        post("/subscribe") {
+            val request = call.receiveJsonOrNull<SubscriberRequest>()
+            service.subscribe(request?.email ?: "")
+            call.respond(mapOf("ok" to true))
         }
     }
 }

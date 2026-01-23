@@ -40,3 +40,33 @@ paths:
           description: Subscription found
         "404":
           description: Subscription not found
+
+  /v1/squarespace/subscribe:
+    post:
+      summary: Squarespace-friendly newsletter subscribe
+      description: Wrapper endpoint for Squarespace forms. Returns a minimal success response.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: test@example.com
+              required:
+                - email
+      responses:
+        "200":
+          description: Subscription accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+        "400":
+          description: Invalid email

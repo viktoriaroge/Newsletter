@@ -1,5 +1,6 @@
 package com.viroge.newsletter.application
 
+import com.viroge.newsletter.api.configureCors
 import com.viroge.newsletter.api.configurePageStatus
 import com.viroge.newsletter.api.routes.configureRoutes
 import com.viroge.newsletter.api.configureSerialization
@@ -29,6 +30,7 @@ fun Application.module() {
     configureSerialization()
     configurePageStatus()
     configureSwagger()
+    configureCors()
 
     // Using in memory to deploy. Will later link with a DB
     val repository = InMemorySubscriberRepository()//PostgresSubscriberRepository()
