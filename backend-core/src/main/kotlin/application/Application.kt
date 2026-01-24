@@ -5,7 +5,7 @@ import com.viroge.newsletter.api.configurePageStatus
 import com.viroge.newsletter.api.routes.configureRoutes
 import com.viroge.newsletter.api.configureSerialization
 import com.viroge.newsletter.api.configureSwagger
-import com.viroge.newsletter.domain.ResendEmailSender
+import com.viroge.newsletter.domain.email.ResendEmailSender
 import com.viroge.newsletter.infrastructure.database.DatabaseFactory
 import com.viroge.newsletter.infrastructure.database.FlywayFactory
 import com.viroge.newsletter.repository.InMemorySubscriberRepository

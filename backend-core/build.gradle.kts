@@ -21,6 +21,10 @@ kotlin {
     jvmToolchain(24) // Set to the lowest common denominator
 }
 
+tasks.test {
+    useJUnitPlatform()
+}
+
 dependencies {
     implementation("io.ktor:ktor-server-core")
     implementation("io.ktor:ktor-server-content-negotiation")
@@ -47,6 +51,8 @@ dependencies {
 
     implementation("org.postgresql:postgresql:42.7.7")
 
-    testImplementation("io.ktor:ktor-server-test-host")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+    testImplementation(kotlin("test")) // kotlin.test + JUnit integration
+    testImplementation("io.ktor:ktor-server-test-host:$ktor_version")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
 }

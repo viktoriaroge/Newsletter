@@ -1,6 +1,6 @@
 package com.viroge.newsletter.service
 
-import com.viroge.newsletter.domain.EmailSender
+import com.viroge.newsletter.domain.email.EmailSender
 import com.viroge.newsletter.domain.Subscriber
 import com.viroge.newsletter.domain.SubscriptionStatus
 import com.viroge.newsletter.domain.UnsubscribeTokens

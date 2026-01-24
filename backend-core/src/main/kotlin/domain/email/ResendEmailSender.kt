@@ -1,4 +1,4 @@
-package com.viroge.newsletter.domain
+package com.viroge.newsletter.domain.email
 
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
