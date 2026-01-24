@@ -3,70 +3,180 @@ info:
   title: Newsletter API
   version: 1.0.0
 
+components:
+  securitySchemes:
+    AdminTokenAuth:
+      type: apiKey
+      in: header
+      name: X-Admin-Token
+      description: Admin token for internal/debug endpoints.
+
+  schemas:
+    SubscriberResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+        email:
+          type: string
+          format: email
+          example: "test@example.com"
+        status:
+          type: string
+          enum: [PENDING, ACTIVE, UNSUBSCRIBED]
+          example: "ACTIVE"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2026-01-23T20:59:32Z"
+        unsubscribedAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: null
+
+    SubscriberRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: "test@example.com"
+      required:
+        - email
+
+    OkResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          example: true
+      required:
+        - ok
+
 paths:
   /v1/subscriptions:
     post:
-      summary: Subscribe to newsletter
+      security:
+        - AdminTokenAuth: [ ]
+      summary: Subscribe to newsletter (returns subscriber)
+      description: Creates or reuses a subscriber. May trigger a welcome email. Intended for API/manual testing usage.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                  example: test@example.com
+              $ref: "#/components/schemas/SubscriberRequest"
       responses:
         "200":
-          description: Subscription created
+          description: Subscriber created or already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriberResponse"
+        "400":
+          description: Invalid request
     get:
+      security:
+        - AdminTokenAuth: [ ]
       summary: List all subscriptions
       responses:
         "200":
-          description: List of subscriptions
+          description: List of subscribers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SubscriberResponse"
 
   /v1/subscriptions/{email}:
     get:
-      summary: Get subscription by email
+      security:
+        - AdminTokenAuth: [ ]
+      summary: Get subscription by email (admin/debug)
+      description: Returns a subscriber by email. Intended for internal or debugging use.
       parameters:
         - name: email
           in: path
           required: true
           schema:
             type: string
+            format: email
       responses:
         "200":
           description: Subscription found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriberResponse"
         "404":
           description: Subscription not found
 
   /v1/squarespace/subscribe:
     post:
-      summary: Squarespace-friendly newsletter subscribe
-      description: Wrapper endpoint for Squarespace forms. Returns a minimal success response.
+      summary: Squarespace-friendly subscribe (always ok)
+      description: Returns {ok:true} to keep UX simple for website forms. Server performs subscribe side effects.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                  example: test@example.com
-              required:
-                - email
+              $ref: "#/components/schemas/SubscriberRequest"
       responses:
         "200":
-          description: Subscription accepted
+          description: Accepted
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                    example: true
+                $ref: "#/components/schemas/OkResponse"
         "400":
-          description: Invalid email
+          description: Invalid request
+
+  /v1/unsubscribe/confirm:
+    post:
+      summary: Confirm unsubscribe
+      description: Handles unsubscribe confirmation form submission.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                  description: Unsubscribe token from the email link
+              required:
+                - token
+      responses:
+        "200":
+          description: HTML confirmation result page
+          content:
+            text/html:
+              schema:
+                type: string
+        "400":
+          description: Missing/invalid token
+
+  /unsubscribe:
+    get:
+      summary: Unsubscribe confirmation page (HTML)
+      description: Browser page opened from email. Shows a confirmation button.
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: HTML page
+          content:
+            text/html:
+              schema:
+                type: string
+        "400":
+          description: Missing token

@@ -83,9 +83,8 @@ class SubscriberService(
     private fun normalizeEmail(raw: String): String =
         raw.trim().lowercase()
 
-    fun getByEmail(email: String): Subscriber =
+    fun getByEmail(email: String): Subscriber? =
         repo.findByEmail(email.lowercase())
-            ?: throw NoSuchElementException("Subscription not found")
 
     fun getAll(): List<Subscriber> =
         repo.findAll()

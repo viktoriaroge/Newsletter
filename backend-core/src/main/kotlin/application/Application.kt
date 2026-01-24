@@ -55,5 +55,3 @@ fun Application.module() {
 
     configureRoutes(service)
 }
-
-//Add welcome email, unsubscribe flow, and Resend integration
