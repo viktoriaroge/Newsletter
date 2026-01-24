@@ -1,12 +1,12 @@
 package com.viroge.newsletter.domain
 
-import kotlinx.serialization.Serializable
+import java.time.Instant
+import java.util.UUID
 
-@Serializable
 data class Subscriber(
-    val id: String,
+    val id: UUID,
     val email: String,
     val status: SubscriptionStatus,
-    val createdAt: String,
-    val confirmedAt: String?
+    val createdAt: Instant,
+    val unsubscribedAt: Instant?,
 )

@@ -1,9 +1,6 @@
-package com.viroge.newsletter.api.dto
+package com.viroge.newsletter.infrastructure.database
 
-import kotlinx.serialization.Serializable
-
-@Serializable
-data class SubscriberResponse(
+data class SubscriberEntity(
     val id: String,
     val email: String,
     val status: String,

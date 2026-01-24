@@ -1,24 +1,38 @@
 package com.viroge.newsletter.repository
 
 import com.viroge.newsletter.domain.Subscriber
-import com.viroge.newsletter.repository.SubscriberRepository
-import java.util.concurrent.ConcurrentHashMap
+import com.viroge.newsletter.domain.SubscriptionStatus
+import java.time.Instant
+import java.util.UUID
 
 class InMemorySubscriberRepository : SubscriberRepository {
 
-    private val storage = ConcurrentHashMap<String, Subscriber>()
+    private val store = mutableMapOf<UUID, Subscriber>()
 
     override fun save(subscriber: Subscriber): Subscriber {
-        storage[subscriber.id] = subscriber
+        store[subscriber.id] = subscriber
         return subscriber
     }
 
     override fun findByEmail(email: String): Subscriber? =
-        storage.values.firstOrNull { it.email == email }
+        store.values.firstOrNull { it.email == email }
 
-    override fun findById(id: String): Subscriber? =
-        storage[id]
+    override fun findById(id: UUID): Subscriber? =
+        store[id]
+
+    override fun updateStatus(
+        id: UUID,
+        status: SubscriptionStatus,
+        unsubscribedAt: Instant?
+    ): Boolean {
+        val existing = store[id] ?: return false
+        store[id] = existing.copy(
+            status = status,
+            unsubscribedAt = unsubscribedAt
+        )
+        return true
+    }
 
     override fun findAll(): List<Subscriber> =
-        storage.values.toList()
+        store.values.toList()
 }

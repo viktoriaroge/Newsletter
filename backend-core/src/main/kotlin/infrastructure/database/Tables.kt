@@ -1,14 +1,16 @@
 package com.viroge.newsletter.infrastructure.database
 
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.javatime.timestamp
 
 object SubscribersTable : Table("subscribers") {
 
-    val id = varchar("id", 36)
-    val email = varchar("email", 255).uniqueIndex()
-    val status = varchar("status", 50)
-    val createdAt = varchar("created_at", 50)
-    val confirmedAt = varchar("confirmed_at", 50).nullable()
+    val id = uuid("id").uniqueIndex()
+    val email = varchar("email", 320).uniqueIndex()
+
+    val status = varchar("status", 32) // "PENDING", "ACTIVE", "UNSUBSCRIBED"
+    val createdAt = timestamp("created_at")
+    val unsubscribedAt = timestamp("unsubscribed_at").nullable()
 
     override val primaryKey = PrimaryKey(id)
 }
