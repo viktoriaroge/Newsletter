@@ -14,6 +14,10 @@ import java.util.UUID
 
 class PostgresSubscriberRepository : SubscriberRepository {
 
+    override fun ping(): Unit = transaction {
+        exec("SELECT 1") { /* ignore */ }
+    }
+
     override fun findByEmail(email: String): Subscriber? = transaction {
         SubscribersTable
             .select { SubscribersTable.email eq email }

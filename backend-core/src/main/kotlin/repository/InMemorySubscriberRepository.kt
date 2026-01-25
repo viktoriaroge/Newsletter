@@ -9,6 +9,8 @@ class InMemorySubscriberRepository : SubscriberRepository {
 
     private val store = mutableMapOf<UUID, Subscriber>()
 
+    override fun ping() = Unit
+
     override fun save(subscriber: Subscriber): Subscriber {
         store[subscriber.id] = subscriber
         return subscriber

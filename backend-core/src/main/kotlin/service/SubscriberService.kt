@@ -17,6 +17,10 @@ class SubscriberService(
 ) {
     private val WELCOME_COOLDOWN_SECONDS = 24L * 3600
 
+    fun pingDb() {
+        repo.ping()
+    }
+
     suspend fun subscribe(rawEmail: String): Subscriber {
         val email = normalizeEmail(rawEmail)
         val now = Instant.now()

@@ -57,6 +57,35 @@ components:
         - ok
 
 paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /health/db:
+    get:
+      summary: Database health check
+      description: Checks that the application can connect to the database.
+      responses:
+        "200":
+          description: DB OK
+          content:
+            text/plain:
+              schema:
+                type: string
+        "503":
+          description: DB unavailable
+          content:
+            text/plain:
+              schema:
+                type: string
+
   /v1/subscriptions:
     post:
       security:

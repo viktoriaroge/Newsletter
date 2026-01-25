@@ -14,15 +14,23 @@ import io.ktor.server.routing.*
 
 fun Application.configureRoutes(service: SubscriberService) {
     routing {
-        configureMetaRoutes()
+        configureMetaRoutes(service)
         configurePublicRoutes(service)   // squarespace + unsubscribe pages
         configureAdminRoutes(service)    // /v1/subscriptions (token-protected)
     }
 }
 
-private fun Route.configureMetaRoutes() {
+private fun Route.configureMetaRoutes(service: SubscriberService) {
     get("/") { call.respondText("Hello World!") }
     get("/health") { call.respondText("OK") }
+    get("/health/db") {
+        try {
+            service.pingDb()
+            call.respondText("OK")
+        } catch (e: Exception) {
+            call.respondText("DB_UNAVAILABLE", status = HttpStatusCode.ServiceUnavailable)
+        }
+    }
 }
 
 private fun Route.configurePublicRoutes(service: SubscriberService) {

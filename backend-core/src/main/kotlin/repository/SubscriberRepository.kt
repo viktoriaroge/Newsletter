@@ -6,6 +6,7 @@ import java.time.Instant
 import java.util.UUID
 
 interface SubscriberRepository {
+    fun ping()
     fun save(subscriber: Subscriber): Subscriber
     fun findByEmail(email: String): Subscriber?
     fun findById(id: UUID): Subscriber?
