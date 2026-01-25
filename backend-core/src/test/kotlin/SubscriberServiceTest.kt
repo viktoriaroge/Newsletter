@@ -71,4 +71,54 @@ class SubscriberServiceTest {
         assertEquals(SubscriptionStatus.UNSUBSCRIBED, after.status)
         assertNotNull(after.unsubscribedAt)
     }
+
+    @Test
+    fun `subscribe does not resend welcome email within cooldown for ACTIVE subscriber`() = runTest {
+        val repo = InMemorySubscriberRepository()
+        val emailSender = FakeEmailSender()
+
+        val service = SubscriberService(
+            repo = repo,
+            emailSender = emailSender,
+            publicBaseUrl = "http://localhost:8080",
+            pdfUrl = "https://example.com/file.pdf",
+            unsubscribeSecret = "test-secret-123"
+        )
+
+        val first = service.subscribe("cooldown@example.com")
+        assertEquals(SubscriptionStatus.ACTIVE, first.status)
+        assertEquals(1, emailSender.sent.size)
+
+        val second = service.subscribe("cooldown@example.com")
+        assertEquals(SubscriptionStatus.ACTIVE, second.status)
+        assertEquals(1, emailSender.sent.size, "Welcome email should not be resent within cooldown window")
+    }
+
+    @Test
+    fun `resubscribe after unsubscribe sends welcome email again`() = runTest {
+        val repo = InMemorySubscriberRepository()
+        val emailSender = FakeEmailSender()
+
+        val service = SubscriberService(
+            repo = repo,
+            emailSender = emailSender,
+            publicBaseUrl = "http://localhost:8080",
+            pdfUrl = "https://example.com/file.pdf",
+            unsubscribeSecret = "test-secret-123"
+        )
+
+        val s1 = service.subscribe("backagain@example.com")
+        assertEquals(1, emailSender.sent.size)
+
+        val token = UnsubscribeTokens.create(
+            subscriberId = s1.id.toString(),
+            issuedAtEpochSec = Instant.now().epochSecond,
+            secret = "test-secret-123"
+        )
+        service.confirmUnsubscribe(token)
+
+        val s2 = service.subscribe("backagain@example.com")
+        assertEquals(SubscriptionStatus.ACTIVE, s2.status)
+        assertEquals(2, emailSender.sent.size, "Welcome email should be sent again after resubscribe")
+    }
 }

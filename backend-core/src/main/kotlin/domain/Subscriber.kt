@@ -9,4 +9,5 @@ data class Subscriber(
     val status: SubscriptionStatus,
     val createdAt: Instant,
     val unsubscribedAt: Instant?,
+    val lastWelcomeSentAt: Instant?,
 )

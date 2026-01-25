@@ -15,11 +15,14 @@ class SubscriberService(
     private val pdfUrl: String,
     private val unsubscribeSecret: String
 ) {
+    private val WELCOME_COOLDOWN_SECONDS = 24L * 3600
 
     suspend fun subscribe(rawEmail: String): Subscriber {
         val email = normalizeEmail(rawEmail)
+        val now = Instant.now()
 
         val existing = repo.findByEmail(email)
+
         val subscriber = when {
             existing == null -> {
                 val now = Instant.now()
@@ -29,7 +32,8 @@ class SubscriberService(
                         email = email,
                         status = SubscriptionStatus.PENDING,
                         createdAt = now,
-                        unsubscribedAt = null
+                        unsubscribedAt = null,
+                        lastWelcomeSentAt = null,
                     )
                 )
             }
@@ -49,14 +53,35 @@ class SubscriberService(
         )
         val unsubscribeUrl = "$publicBaseUrl/unsubscribe?token=$token"
 
-        try {
-            emailSender.sendWelcomeEmail(subscriber.email, pdfUrl, unsubscribeUrl)
-            repo.updateStatus(subscriber.id, SubscriptionStatus.ACTIVE, unsubscribedAt = null)
-        } catch (e: Exception) {
-            println("Welcome email send failed for ${subscriber.email}: ${e.message}")
+        val shouldSendWelcome = when (subscriber.status) {
+            SubscriptionStatus.PENDING -> true
+            SubscriptionStatus.UNSUBSCRIBED -> true // should not happen here, but safe
+            SubscriptionStatus.ACTIVE -> {
+                val last = subscriber.lastWelcomeSentAt
+                last == null || (now.epochSecond - last.epochSecond) >= WELCOME_COOLDOWN_SECONDS
+            }
         }
 
-        // Return latest state (optional: re-read if you want exact ACTIVE/PENDING)
+        if (shouldSendWelcome) {
+            try {
+                emailSender.sendWelcomeEmail(
+                    to = email,
+                    pdfUrl = pdfUrl,
+                    unsubscribeUrl = unsubscribeUrl
+                )
+                repo.updateLastWelcomeSentAt(subscriber.id, now)
+                repo.updateStatus(subscriber.id, SubscriptionStatus.ACTIVE, unsubscribedAt = null)
+            } catch (e: Exception) {
+                // Keep PENDING (or keep ACTIVE if it already was), but do not crash caller
+                println("Welcome email send failed for $email: ${e.message}")
+            }
+        } else {
+            // No resend, but ensure ACTIVE (it already is in this branch)
+            if (subscriber.status != SubscriptionStatus.ACTIVE) {
+                repo.updateStatus(subscriber.id, SubscriptionStatus.ACTIVE, unsubscribedAt = null)
+            }
+        }
+
         return repo.findById(subscriber.id) ?: subscriber
     }
 
@@ -64,20 +89,12 @@ class SubscriberService(
         val subscriberIdStr = UnsubscribeTokens.verify(
             token = token,
             secret = unsubscribeSecret,
-            maxAgeSeconds = 30L * 24 * 3600 // 30 days
+            maxAgeSeconds = 30L * 24 * 3600
         )
 
-        val subscriberId = UUID.fromString(subscriberIdStr)
-
-        val ok = repo.updateStatus(
-            id = subscriberId,
-            status = SubscriptionStatus.UNSUBSCRIBED,
-            unsubscribedAt = Instant.now()
-        )
-
-        if (!ok) {
-            throw NoSuchElementException("Subscriber not found")
-        }
+        val id = UUID.fromString(subscriberIdStr)
+        val ok = repo.updateStatus(id, SubscriptionStatus.UNSUBSCRIBED, unsubscribedAt = Instant.now())
+        if (!ok) throw NoSuchElementException("Subscriber not found")
     }
 
     private fun normalizeEmail(raw: String): String =

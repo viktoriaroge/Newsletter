@@ -11,6 +11,7 @@ object SubscribersTable : Table("subscribers") {
     val status = varchar("status", 32) // "PENDING", "ACTIVE", "UNSUBSCRIBED"
     val createdAt = timestamp("created_at")
     val unsubscribedAt = timestamp("unsubscribed_at").nullable()
+    val lastWelcomeSentAt = timestamp("last_welcome_sent_at").nullable()
 
     override val primaryKey = PrimaryKey(id)
 }

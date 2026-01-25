@@ -11,4 +11,5 @@ interface SubscriberRepository {
     fun findById(id: UUID): Subscriber?
     fun findAll(): List<Subscriber>
     fun updateStatus(id: UUID, status: SubscriptionStatus, unsubscribedAt: Instant?): Boolean
+    fun updateLastWelcomeSentAt(id: UUID, at: Instant?): Boolean
 }

@@ -33,6 +33,12 @@ class InMemorySubscriberRepository : SubscriberRepository {
         return true
     }
 
+    override fun updateLastWelcomeSentAt(id: UUID, at: Instant?): Boolean {
+        val existing = store[id] ?: return false
+        store[id] = existing.copy(lastWelcomeSentAt = at)
+        return true
+    }
+
     override fun findAll(): List<Subscriber> =
         store.values.toList()
 }

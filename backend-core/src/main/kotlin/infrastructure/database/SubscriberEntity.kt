@@ -6,4 +6,5 @@ data class SubscriberEntity(
     val status: String,
     val createdAt: String,
     val unsubscribedAt: String?,
+    val lastWelcomeSentAt: String?,
 )

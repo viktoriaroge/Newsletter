@@ -49,6 +49,12 @@ class PostgresSubscriberRepository : SubscriberRepository {
         updated > 0
     }
 
+    override fun updateLastWelcomeSentAt(id: UUID, at: Instant?): Boolean = transaction {
+        SubscribersTable.update({ SubscribersTable.id eq id }) {
+            it[lastWelcomeSentAt] = at
+        } > 0
+    }
+
     override fun findAll(): List<Subscriber> =
         transaction {
             SubscribersTable

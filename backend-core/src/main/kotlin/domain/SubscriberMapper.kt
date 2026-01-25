@@ -22,7 +22,8 @@ fun SubscriberEntity.toDomain(): Subscriber =
         email = email,
         status = SubscriptionStatus.valueOf(status),
         createdAt = Instant.parse(createdAt),
-        unsubscribedAt = unsubscribedAt?.let { Instant.parse(it) }
+        unsubscribedAt = unsubscribedAt?.let { Instant.parse(it) },
+        lastWelcomeSentAt = lastWelcomeSentAt?.let { Instant.parse(it) },
     )
 
 fun Subscriber.toEntity(): SubscriberEntity =
@@ -31,7 +32,8 @@ fun Subscriber.toEntity(): SubscriberEntity =
         email = email,
         status = status.name,
         createdAt = createdAt.toString(), // ISO-8601
-        unsubscribedAt = unsubscribedAt?.toString()
+        unsubscribedAt = unsubscribedAt?.toString(),
+        lastWelcomeSentAt = lastWelcomeSentAt?.toString(),
     )
 
 fun ResultRow.toSubscriber(): Subscriber =
@@ -40,5 +42,6 @@ fun ResultRow.toSubscriber(): Subscriber =
         email = this[SubscribersTable.email],
         status = SubscriptionStatus.valueOf(this[SubscribersTable.status]),
         createdAt = this[SubscribersTable.createdAt],
-        unsubscribedAt = this[SubscribersTable.unsubscribedAt]
+        unsubscribedAt = this[SubscribersTable.unsubscribedAt],
+        lastWelcomeSentAt = this[SubscribersTable.lastWelcomeSentAt],
     )
