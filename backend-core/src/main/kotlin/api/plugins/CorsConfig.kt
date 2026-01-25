@@ -1,10 +1,11 @@
-package com.viroge.newsletter.api
+package com.viroge.newsletter.api.plugins
 
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.plugins.cors.routing.*
+import java.net.URI
 
 fun Application.configureCors() {
     val allowedOrigins = (System.getenv("CORS_ALLOWED_ORIGINS") ?: "")
@@ -21,7 +22,7 @@ fun Application.configureCors() {
         // If nothing is configured, fail safe (block everything)
         // or for dev you could fallback to localhost only.
         for (origin in allowedOrigins) {
-            val uri = java.net.URI(origin)
+            val uri = URI(origin)
             val host = if (uri.port == -1) uri.host else "${uri.host}:${uri.port}"
             allowHost(host, schemes = listOf(uri.scheme))
         }

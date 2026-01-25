@@ -1,4 +1,4 @@
-package com.viroge.newsletter.api
+package com.viroge.newsletter.api.util
 
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.log

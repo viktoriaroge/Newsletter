@@ -1,4 +1,6 @@
-package com.viroge.newsletter.domain.email
+package domain.email
+
+import com.viroge.newsletter.domain.email.EmailSender
 
 class FakeEmailSender : EmailSender {
     data class Sent(val to: String, val pdfUrl: String, val unsubscribeUrl: String)

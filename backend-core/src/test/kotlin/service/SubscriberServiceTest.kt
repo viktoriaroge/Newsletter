@@ -1,12 +1,17 @@
+package service
+
 import com.viroge.newsletter.domain.SubscriptionStatus
 import com.viroge.newsletter.domain.UnsubscribeTokens
-import com.viroge.newsletter.domain.email.FakeEmailSender
 import com.viroge.newsletter.repository.InMemorySubscriberRepository
 import com.viroge.newsletter.repository.SubscriberRepository
 import com.viroge.newsletter.service.SubscriberService
+import domain.email.FakeEmailSender
 import kotlinx.coroutines.test.runTest
-import kotlin.test.*
 import java.time.Instant
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 class SubscriberServiceTest {
 

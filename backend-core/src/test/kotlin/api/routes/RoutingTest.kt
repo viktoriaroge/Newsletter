@@ -1,8 +1,11 @@
-import com.viroge.newsletter.api.configureSerialization
+package api.routes
+
+import com.viroge.newsletter.api.plugins.configureErrorHandling
+import com.viroge.newsletter.api.plugins.configureSerialization
 import com.viroge.newsletter.api.routes.configureRoutes
-import com.viroge.newsletter.domain.email.FakeEmailSender
 import com.viroge.newsletter.repository.InMemorySubscriberRepository
 import com.viroge.newsletter.service.SubscriberService
+import domain.email.FakeEmailSender
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
@@ -100,5 +103,42 @@ class RoutingTest {
         assertEquals(HttpStatusCode.OK, resp.status)
         val body = resp.bodyAsText()
         assertTrue(body.contains("\"ok\""))
+    }
+
+    @Test
+    fun `admin subscribe returns 400 for invalid email`() = testApplication {
+        environment {
+            config = MapApplicationConfig(
+                "admin.apiToken" to "secret-token"
+            )
+        }
+
+        val repo = InMemorySubscriberRepository()
+        val emailSender = FakeEmailSender()
+        val service = SubscriberService(
+            repo = repo,
+            emailSender = emailSender,
+            publicBaseUrl = "http://localhost:8080",
+            pdfUrl = "https://example.com/file.pdf",
+            unsubscribeSecret = "test-secret-123"
+        )
+
+        application {
+            configureSerialization()
+            configureErrorHandling()
+            configureRoutes(service)
+        }
+
+        val resp = client.post("/v1/subscriptions") {
+            header("X-Admin-Token", "secret-token")
+            contentType(ContentType.Application.Json)
+            setBody("""{"email":"not-an-email"}""")
+        }
+
+        assertEquals(HttpStatusCode.BadRequest, resp.status)
+
+        val body = resp.bodyAsText()
+        // Optional: if you return ApiError JSON
+        assertTrue(body.contains("bad_request"), "Expected ApiError response, got: $body")
     }
 }

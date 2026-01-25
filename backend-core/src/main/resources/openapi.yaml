@@ -56,6 +56,20 @@ components:
       required:
         - ok
 
+    ApiError:
+      type: object
+      properties:
+        code:
+          type: string
+          example: bad_request
+        message:
+          type: string
+          example: email is required
+        requestId:
+          type: string
+          nullable: true
+      required: [ code, message ]
+
 paths:
   /health:
     get:

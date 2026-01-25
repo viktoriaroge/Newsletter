@@ -2,12 +2,14 @@ package com.viroge.newsletter.api.routes
 
 import com.viroge.newsletter.api.auth.requireAdminToken
 import com.viroge.newsletter.api.dto.SubscriberRequest
-import com.viroge.newsletter.api.receiveJsonOrNull
+import com.viroge.newsletter.api.util.receiveJsonOrNull
+import com.viroge.newsletter.api.util.requireValidEmail
 import com.viroge.newsletter.domain.toResponse
 import com.viroge.newsletter.service.SubscriberService
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.*
+import io.ktor.server.plugins.callid.callId
 import io.ktor.server.request.receiveParameters
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -36,18 +38,25 @@ private fun Route.configureMetaRoutes(service: SubscriberService) {
 private fun Route.configurePublicRoutes(service: SubscriberService) {
 
     // Squarespace-friendly endpoint
-    route("/v1/squarespace") {
-        post("/subscribe") {
-            val request = call.receiveJsonOrNull<SubscriberRequest>()
-                ?: return@post call.respond(HttpStatusCode.BadRequest)
+    post("/v1/squarespace/subscribe") {
+        val request = call.receiveJsonOrNull<SubscriberRequest>()
+        val emailRaw = request?.email
 
-            if (request.email.isBlank()) {
-                return@post call.respond(HttpStatusCode.BadRequest)
-            }
-
-            service.subscribe(request.email)
-            call.respond(mapOf("ok" to true))
+        val email = try {
+            requireValidEmail(emailRaw)
+        } catch (_: IllegalArgumentException) {
+            application.log.warn("Squarespace subscribe invalid email (requestId={})", call.callId)
+            return@post call.respond(mapOf("ok" to true))
         }
+
+        try {
+            service.subscribe(email)
+        } catch (e: Exception) {
+            application.log.error("Squarespace subscribe failed for {} (requestId={})", email, call.callId, e)
+            // still ok=true
+        }
+
+        call.respond(mapOf("ok" to true))
     }
 
     // Browser page opened from email
@@ -74,15 +83,30 @@ private fun Route.configurePublicRoutes(service: SubscriberService) {
     // Form submit from the confirmation page
     post("/v1/unsubscribe/confirm") {
         val params = call.receiveParameters()
-        val token = params["token"]
-            ?: return@post call.respond(HttpStatusCode.BadRequest)
+        val token = params["token"]?.trim()
 
-        service.confirmUnsubscribe(token)
+        if (token.isNullOrBlank()) {
+            return@post call.respondText(
+                "<html><body><h2>Invalid request.</h2></body></html>",
+                ContentType.Text.Html,
+                status = HttpStatusCode.BadRequest
+            )
+        }
 
-        call.respondText(
-            "<html><body><h2>You’re unsubscribed.</h2></body></html>",
-            ContentType.Text.Html
-        )
+        try {
+            service.confirmUnsubscribe(token)
+            call.respondText(
+                "<html><body><h2>You’re unsubscribed.</h2></body></html>",
+                ContentType.Text.Html
+            )
+        } catch (e: Exception) {
+            // token invalid / expired / subscriber missing
+            call.respondText(
+                "<html><body><h2>Invalid or expired unsubscribe link.</h2></body></html>",
+                ContentType.Text.Html,
+                status = HttpStatusCode.BadRequest
+            )
+        }
     }
 }
 
@@ -91,28 +115,30 @@ private fun Route.configureAdminRoutes(service: SubscriberService) {
 
         post {
             if (!call.requireAdminToken()) return@post
+
             val request = call.receiveJsonOrNull<SubscriberRequest>()
-                ?: return@post call.respond(HttpStatusCode.BadRequest)
+                ?: throw IllegalArgumentException("Request body is required")
 
-            if (request.email.isBlank()) return@post call.respond(HttpStatusCode.BadRequest)
+            val email = requireValidEmail(request.email)
 
-            val subscriber = service.subscribe(request.email)
+            val subscriber = service.subscribe(email)
             call.respond(subscriber.toResponse())
         }
 
         get {
             if (!call.requireAdminToken()) return@get
+
             val subscribers = service.getAll()
             call.respond(subscribers.map { it.toResponse() })
         }
 
         get("/{email}") {
             if (!call.requireAdminToken()) return@get
-            val email = call.parameters["email"]
-                ?: return@get call.respond(HttpStatusCode.BadRequest)
+
+            val email = requireValidEmail(call.parameters["email"])
 
             val subscriber = service.getByEmail(email)
-                ?: return@get call.respond(HttpStatusCode.NotFound)
+                ?: throw NoSuchElementException("Subscriber not found")
 
             call.respond(subscriber.toResponse())
         }

@@ -1,4 +1,4 @@
-package com.viroge.newsletter.api
+package com.viroge.newsletter.api.plugins
 
 import io.ktor.server.application.Application
 import io.ktor.server.http.content.staticResources
