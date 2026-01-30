@@ -6,6 +6,7 @@ import com.viroge.newsletter.api.plugins.configureRequestLogging
 import com.viroge.newsletter.api.routes.configureRoutes
 import com.viroge.newsletter.api.plugins.configureSerialization
 import com.viroge.newsletter.api.plugins.configureSwagger
+import com.viroge.newsletter.api.rate.FixedWindowRateLimiter
 import com.viroge.newsletter.domain.email.EmailSender
 import com.viroge.newsletter.domain.email.NoOpEmailSender
 import com.viroge.newsletter.domain.email.ResendEmailSender
@@ -64,5 +65,7 @@ fun Application.module() {
         unsubscribeSecret = System.getenv("UNSUBSCRIBE_SECRET") ?: "dev-secret"
     )
 
-    configureRoutes(service)
+    val limiter = FixedWindowRateLimiter(limit = 5, windowSeconds = 60)
+
+    configureRoutes(service, limiter)
 }

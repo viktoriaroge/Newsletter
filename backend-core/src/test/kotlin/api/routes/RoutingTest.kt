@@ -2,6 +2,7 @@ package api.routes
 
 import com.viroge.newsletter.api.plugins.configureErrorHandling
 import com.viroge.newsletter.api.plugins.configureSerialization
+import com.viroge.newsletter.api.rate.FixedWindowRateLimiter
 import com.viroge.newsletter.api.routes.configureRoutes
 import com.viroge.newsletter.repository.InMemorySubscriberRepository
 import com.viroge.newsletter.service.SubscriberService
@@ -10,6 +11,7 @@ import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
@@ -18,6 +20,7 @@ import io.ktor.server.config.MapApplicationConfig
 import io.ktor.server.testing.testApplication
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class RoutingTest {
@@ -40,9 +43,11 @@ class RoutingTest {
             unsubscribeSecret = "test-secret-123"
         )
 
+        val limiter = FixedWindowRateLimiter(limit = 5, windowSeconds = 60)
+
         application {
             configureSerialization()
-            configureRoutes(service)
+            configureRoutes(service, limiter)
         }
 
         val resp = client.get("/v1/subscriptions")
@@ -67,9 +72,11 @@ class RoutingTest {
             unsubscribeSecret = "test-secret-123"
         )
 
+        val limiter = FixedWindowRateLimiter(limit = 5, windowSeconds = 60)
+
         application {
             configureSerialization()
-            configureRoutes(service)
+            configureRoutes(service, limiter)
         }
 
         val resp = client.get("/v1/subscriptions") {
@@ -90,9 +97,11 @@ class RoutingTest {
             unsubscribeSecret = "test-secret-123"
         )
 
+        val limiter = FixedWindowRateLimiter(limit = 5, windowSeconds = 60)
+
         application {
             configureSerialization()
-            configureRoutes(service)
+            configureRoutes(service, limiter)
         }
 
         val resp = client.post("/v1/squarespace/subscribe") {
@@ -123,10 +132,12 @@ class RoutingTest {
             unsubscribeSecret = "test-secret-123"
         )
 
+        val limiter = FixedWindowRateLimiter(limit = 5, windowSeconds = 60)
+
         application {
             configureSerialization()
             configureErrorHandling()
-            configureRoutes(service)
+            configureRoutes(service, limiter)
         }
 
         val resp = client.post("/v1/subscriptions") {
@@ -138,7 +149,45 @@ class RoutingTest {
         assertEquals(HttpStatusCode.BadRequest, resp.status)
 
         val body = resp.bodyAsText()
-        // Optional: if you return ApiError JSON
         assertTrue(body.contains("bad_request"), "Expected ApiError response, got: $body")
+    }
+
+    @Test
+    fun `squarespace subscribe sets rate-limited header after limit`() = testApplication {
+        val repo = InMemorySubscriberRepository()
+        val emailSender = FakeEmailSender()
+        val service = SubscriberService(
+            repo = repo,
+            emailSender = emailSender,
+            publicBaseUrl = "http://localhost:8080",
+            pdfUrl = "https://example.com/file.pdf",
+            unsubscribeSecret = "test-secret-123"
+        )
+
+        val limiter = FixedWindowRateLimiter(limit = 2, windowSeconds = 60)
+
+        application {
+            configureSerialization()
+            configureRoutes(service, limiter)
+        }
+
+        suspend fun postOnce(): HttpResponse =
+            client.post("/v1/squarespace/subscribe") {
+                header("X-Forwarded-For", "1.2.3.4")
+                contentType(ContentType.Application.Json)
+                setBody("""{"email":"test@example.com"}""")
+            }
+
+        val r1 = postOnce()
+        assertEquals(HttpStatusCode.OK, r1.status)
+        assertNull(r1.headers["X-Rate-Limited"])
+
+        val r2 = postOnce()
+        assertEquals(HttpStatusCode.OK, r2.status)
+        assertNull(r2.headers["X-Rate-Limited"])
+
+        val r3 = postOnce()
+        assertEquals(HttpStatusCode.OK, r3.status)
+        assertEquals("true", r3.headers["X-Rate-Limited"])
     }
 }

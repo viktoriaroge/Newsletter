@@ -2,6 +2,8 @@ package com.viroge.newsletter.api.routes
 
 import com.viroge.newsletter.api.auth.requireAdminToken
 import com.viroge.newsletter.api.dto.SubscriberRequest
+import com.viroge.newsletter.api.rate.FixedWindowRateLimiter
+import com.viroge.newsletter.api.rate.clientIp
 import com.viroge.newsletter.api.util.receiveJsonOrNull
 import com.viroge.newsletter.api.util.requireValidEmail
 import com.viroge.newsletter.domain.toResponse
@@ -14,10 +16,10 @@ import io.ktor.server.request.receiveParameters
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Application.configureRoutes(service: SubscriberService) {
+fun Application.configureRoutes(service: SubscriberService, limiter: FixedWindowRateLimiter) {
     routing {
         configureMetaRoutes(service)
-        configurePublicRoutes(service)   // squarespace + unsubscribe pages
+        configurePublicRoutes(service, limiter)   // squarespace + unsubscribe pages
         configureAdminRoutes(service)    // /v1/subscriptions (token-protected)
     }
 }
@@ -35,10 +37,22 @@ private fun Route.configureMetaRoutes(service: SubscriberService) {
     }
 }
 
-private fun Route.configurePublicRoutes(service: SubscriberService) {
+private fun Route.configurePublicRoutes(
+    service: SubscriberService,
+    limiter: FixedWindowRateLimiter,
+) {
 
     // Squarespace-friendly endpoint
     post("/v1/squarespace/subscribe") {
+        val ip = call.clientIp()
+        val allowed = limiter.allow("sq:$ip")
+
+        if (!allowed) {
+            application.log.warn("Rate limited Squarespace subscribe ip={} requestId={}", ip, call.callId)
+            call.response.headers.append("X-Rate-Limited", "true")
+            return@post call.respond(mapOf("ok" to true)) // keep UX
+        }
+
         val request = call.receiveJsonOrNull<SubscriberRequest>()
         val emailRaw = request?.email
 
