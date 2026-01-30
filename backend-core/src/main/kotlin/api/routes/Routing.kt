@@ -4,6 +4,9 @@ import com.viroge.newsletter.api.auth.requireAdminToken
 import com.viroge.newsletter.api.dto.SubscriberRequest
 import com.viroge.newsletter.api.rate.FixedWindowRateLimiter
 import com.viroge.newsletter.api.rate.clientIp
+import com.viroge.newsletter.api.templates.DefaultPages
+import com.viroge.newsletter.api.templates.TemplateLoader
+import com.viroge.newsletter.api.templates.renderTemplate
 import com.viroge.newsletter.api.util.receiveJsonOrNull
 import com.viroge.newsletter.api.util.requireValidEmail
 import com.viroge.newsletter.domain.toResponse
@@ -16,11 +19,18 @@ import io.ktor.server.request.receiveParameters
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Application.configureRoutes(service: SubscriberService, limiter: FixedWindowRateLimiter) {
+fun Application.configureRoutes(
+    service: SubscriberService,
+    limiter: FixedWindowRateLimiter,
+    templateLoader: TemplateLoader,
+    publicBaseUrl: String
+) {
     routing {
         configureMetaRoutes(service)
-        configurePublicRoutes(service, limiter)   // squarespace + unsubscribe pages
-        configureAdminRoutes(service)    // /v1/subscriptions (token-protected)
+        // squarespace + unsubscribe pages:
+        configurePublicRoutes(service, limiter, templateLoader, publicBaseUrl)
+        // /v1/subscriptions (token-protected):
+        configureAdminRoutes(service)
     }
 }
 
@@ -40,6 +50,8 @@ private fun Route.configureMetaRoutes(service: SubscriberService) {
 private fun Route.configurePublicRoutes(
     service: SubscriberService,
     limiter: FixedWindowRateLimiter,
+    templateLoader: TemplateLoader,
+    publicBaseUrl: String,
 ) {
 
     // Squarespace-friendly endpoint
@@ -78,20 +90,28 @@ private fun Route.configurePublicRoutes(
         val token = call.request.queryParameters["token"]
             ?: return@get call.respond(HttpStatusCode.BadRequest)
 
-        call.respondText(
-            """
-            <html>
-              <body>
-                <h2>Unsubscribe?</h2>
-                <form method="post" action="/v1/unsubscribe/confirm">
-                  <input type="hidden" name="token" value="$token"/>
-                  <button type="submit">Yes, unsubscribe</button>
-                </form>
-              </body>
-            </html>
-            """.trimIndent(),
-            ContentType.Text.Html
+        val confirmTemplateUrl = System.getenv("UNSUBSCRIBE_CONFIRM_TEMPLATE_URL")
+        val websiteUrl = System.getenv("WEBSITE_URL") ?: "https://example.com"
+        val actionUrl = "$publicBaseUrl/v1/unsubscribe/confirm".trimEnd('/')
+
+        val defaultHtml = DefaultPages.unsubscribeConfirmDefault(
+            token = token,
+            actionUrl = actionUrl,
+            websiteUrl = websiteUrl
         )
+
+        val html = templateLoader.loadOrDefault(confirmTemplateUrl, defaultHtml)
+
+        val rendered = renderTemplate(
+            html,
+            mapOf(
+                "TOKEN" to token,
+                "ACTION_URL" to actionUrl,
+                "WEBSITE_URL" to websiteUrl
+            )
+        )
+
+        call.respondText(rendered, ContentType.Text.Html)
     }
 
     // Form submit from the confirmation page
@@ -99,28 +119,55 @@ private fun Route.configurePublicRoutes(
         val params = call.receiveParameters()
         val token = params["token"]?.trim()
 
+        val resultTemplateUrl = System.getenv("UNSUBSCRIBE_RESULT_TEMPLATE_URL")
+        val websiteUrl = System.getenv("WEBSITE_URL") ?: "https://example.com"
+
         if (token.isNullOrBlank()) {
-            return@post call.respondText(
-                "<html><body><h2>Invalid request.</h2></body></html>",
-                ContentType.Text.Html,
-                status = HttpStatusCode.BadRequest
+            val defaultHtml = DefaultPages.unsubscribeResultDefault(
+                title = "Invalid request",
+                message = "Missing token.",
+                websiteUrl = websiteUrl
+            )
+            val html = templateLoader.loadOrDefault(resultTemplateUrl, defaultHtml)
+            val rendered = renderTemplate(
+                html,
+                mapOf(
+                    "TITLE" to "Invalid request",
+                    "MESSAGE" to "Missing token.",
+                    "WEBSITE_URL" to websiteUrl
+                )
+            )
+            return@post call.respondText(rendered, ContentType.Text.Html, status = HttpStatusCode.BadRequest)
+        }
+
+        val (title, message, status) = try {
+            service.confirmUnsubscribe(token)
+            Triple("You're unsubscribed", "You will no longer receive emails from us.", HttpStatusCode.OK)
+        } catch (_: Exception) {
+            Triple(
+                "Invalid or expired link",
+                "This unsubscribe link is invalid or has expired.",
+                HttpStatusCode.BadRequest
             )
         }
 
-        try {
-            service.confirmUnsubscribe(token)
-            call.respondText(
-                "<html><body><h2>You’re unsubscribed.</h2></body></html>",
-                ContentType.Text.Html
+        val defaultHtml = DefaultPages.unsubscribeResultDefault(
+            title = title,
+            message = message,
+            websiteUrl = websiteUrl
+        )
+
+        val html = templateLoader.loadOrDefault(resultTemplateUrl, defaultHtml)
+        val rendered = renderTemplate(
+            html,
+            mapOf(
+                "TITLE" to title,
+                "MESSAGE" to message,
+                "WEBSITE_URL" to websiteUrl
             )
-        } catch (e: Exception) {
-            // token invalid / expired / subscriber missing
-            call.respondText(
-                "<html><body><h2>Invalid or expired unsubscribe link.</h2></body></html>",
-                ContentType.Text.Html,
-                status = HttpStatusCode.BadRequest
-            )
-        }
+        )
+
+        call.respondText(rendered, ContentType.Text.Html, status = status)
     }
 }
 

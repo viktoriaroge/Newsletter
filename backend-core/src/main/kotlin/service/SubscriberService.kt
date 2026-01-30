@@ -15,7 +15,10 @@ class SubscriberService(
     private val pdfUrl: String,
     private val unsubscribeSecret: String
 ) {
-    private val WELCOME_COOLDOWN_SECONDS = 24L * 3600
+
+    companion object {
+        private const val WELCOME_COOLDOWN_SECONDS = 24L * 3600
+    }
 
     fun pingDb() {
         repo.ping()

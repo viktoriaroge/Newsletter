@@ -4,9 +4,10 @@ import com.viroge.newsletter.api.plugins.configureErrorHandling
 import com.viroge.newsletter.api.plugins.configureSerialization
 import com.viroge.newsletter.api.rate.FixedWindowRateLimiter
 import com.viroge.newsletter.api.routes.configureRoutes
+import com.viroge.newsletter.api.templates.FakeTemplateLoader
 import com.viroge.newsletter.repository.InMemorySubscriberRepository
 import com.viroge.newsletter.service.SubscriberService
-import domain.email.FakeEmailSender
+import com.viroge.newsletter.domain.email.FakeEmailSender
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
@@ -14,6 +15,7 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.server.config.MapApplicationConfig
@@ -44,10 +46,12 @@ class RoutingTest {
         )
 
         val limiter = FixedWindowRateLimiter(limit = 5, windowSeconds = 60)
+        val templateLoader = FakeTemplateLoader("")
+        val publicBaseUrl = "http://localhost:8080"
 
         application {
             configureSerialization()
-            configureRoutes(service, limiter)
+            configureRoutes(service, limiter, templateLoader, publicBaseUrl)
         }
 
         val resp = client.get("/v1/subscriptions")
@@ -73,10 +77,12 @@ class RoutingTest {
         )
 
         val limiter = FixedWindowRateLimiter(limit = 5, windowSeconds = 60)
+        val templateLoader = FakeTemplateLoader("")
+        val publicBaseUrl = "http://localhost:8080"
 
         application {
             configureSerialization()
-            configureRoutes(service, limiter)
+            configureRoutes(service, limiter, templateLoader, publicBaseUrl)
         }
 
         val resp = client.get("/v1/subscriptions") {
@@ -98,10 +104,12 @@ class RoutingTest {
         )
 
         val limiter = FixedWindowRateLimiter(limit = 5, windowSeconds = 60)
+        val templateLoader = FakeTemplateLoader("")
+        val publicBaseUrl = "http://localhost:8080"
 
         application {
             configureSerialization()
-            configureRoutes(service, limiter)
+            configureRoutes(service, limiter, templateLoader, publicBaseUrl)
         }
 
         val resp = client.post("/v1/squarespace/subscribe") {
@@ -133,11 +141,13 @@ class RoutingTest {
         )
 
         val limiter = FixedWindowRateLimiter(limit = 5, windowSeconds = 60)
+        val templateLoader = FakeTemplateLoader("")
+        val publicBaseUrl = "http://localhost:8080"
 
         application {
             configureSerialization()
             configureErrorHandling()
-            configureRoutes(service, limiter)
+            configureRoutes(service, limiter, templateLoader, publicBaseUrl)
         }
 
         val resp = client.post("/v1/subscriptions") {
@@ -165,10 +175,12 @@ class RoutingTest {
         )
 
         val limiter = FixedWindowRateLimiter(limit = 2, windowSeconds = 60)
+        val templateLoader = FakeTemplateLoader("")
+        val publicBaseUrl = "http://localhost:8080"
 
         application {
             configureSerialization()
-            configureRoutes(service, limiter)
+            configureRoutes(service, limiter, templateLoader, publicBaseUrl)
         }
 
         suspend fun postOnce(): HttpResponse =
@@ -190,4 +202,46 @@ class RoutingTest {
         assertEquals(HttpStatusCode.OK, r3.status)
         assertEquals("true", r3.headers["X-Rate-Limited"])
     }
+
+    @Test
+    fun `unsubscribe page renders html with placeholders replaced`() = testApplication {
+        val repo = InMemorySubscriberRepository()
+        val service = SubscriberService(
+            repo = repo,
+            emailSender = FakeEmailSender(),
+            publicBaseUrl = "http://localhost:8080",
+            pdfUrl = "https://example.com/file.pdf",
+            unsubscribeSecret = "test-secret-123"
+        )
+
+        val fakeHtml = """
+        <html>
+          <body>
+            token={{TOKEN}}
+            action={{ACTION_URL}}
+            site={{WEBSITE_URL}}
+          </body>
+        </html>
+    """.trimIndent()
+
+        val limiter = FixedWindowRateLimiter(limit = 5, windowSeconds = 60)
+        val templateLoader = FakeTemplateLoader(fakeHtml)
+        val publicBaseUrl = "http://localhost:8080"
+
+        application {
+            configureSerialization()
+            configureRoutes(service, limiter, templateLoader, publicBaseUrl)
+        }
+
+        // WEBSITE_URL env might not be set in tests; your code should default to example.com or similar
+        val resp = client.get("/unsubscribe?token=abc123")
+
+        assertEquals(HttpStatusCode.OK, resp.status)
+        assertTrue(resp.headers[HttpHeaders.ContentType]!!.contains("text/html"))
+
+        val body = resp.bodyAsText()
+        assertTrue(body.contains("token=abc123"))
+        assertTrue(body.contains("action=http://localhost")) // derived from request
+    }
+
 }

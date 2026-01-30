@@ -5,7 +5,7 @@ import com.viroge.newsletter.domain.UnsubscribeTokens
 import com.viroge.newsletter.repository.InMemorySubscriberRepository
 import com.viroge.newsletter.repository.SubscriberRepository
 import com.viroge.newsletter.service.SubscriberService
-import domain.email.FakeEmailSender
+import com.viroge.newsletter.domain.email.FakeEmailSender
 import kotlinx.coroutines.test.runTest
 import java.time.Instant
 import kotlin.test.Test

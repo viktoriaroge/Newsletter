@@ -7,6 +7,7 @@ import com.viroge.newsletter.api.routes.configureRoutes
 import com.viroge.newsletter.api.plugins.configureSerialization
 import com.viroge.newsletter.api.plugins.configureSwagger
 import com.viroge.newsletter.api.rate.FixedWindowRateLimiter
+import com.viroge.newsletter.api.templates.RemoteTemplateLoader
 import com.viroge.newsletter.domain.email.EmailSender
 import com.viroge.newsletter.domain.email.NoOpEmailSender
 import com.viroge.newsletter.domain.email.ResendEmailSender
@@ -57,15 +58,17 @@ fun Application.module() {
         )
         else NoOpEmailSender()
 
+    val publicBaseUrl = System.getenv("PUBLIC_BASE_URL") ?: "http://localhost:8080"
     val service = SubscriberService(
         repo = repo,
         emailSender = emailSender,
-        publicBaseUrl = System.getenv("PUBLIC_BASE_URL") ?: "http://localhost:8080",
+        publicBaseUrl = publicBaseUrl,
         pdfUrl = System.getenv("PDF_URL") ?: "",
         unsubscribeSecret = System.getenv("UNSUBSCRIBE_SECRET") ?: "dev-secret"
     )
 
     val limiter = FixedWindowRateLimiter(limit = 5, windowSeconds = 60)
+    val templateLoader = RemoteTemplateLoader()
 
-    configureRoutes(service, limiter)
+    configureRoutes(service, limiter, templateLoader, publicBaseUrl)
 }
