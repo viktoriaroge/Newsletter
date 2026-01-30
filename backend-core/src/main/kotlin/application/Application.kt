@@ -47,15 +47,15 @@ fun Application.module() {
         if (useDb) PostgresSubscriberRepository()
         else InMemorySubscriberRepository()
 
+    val usesEmailService = !System.getenv("RESEND_API_KEY").isNullOrBlank()
+            && !System.getenv("EMAIL_FROM").isNullOrBlank()
+
     val emailSender: EmailSender =
-        if (!System.getenv("RESEND_API_KEY").isNullOrBlank() && !System.getenv("EMAIL_FROM").isNullOrBlank()) {
-            ResendEmailSender(
-                apiKey = System.getenv("RESEND_API_KEY")!!,
-                from = System.getenv("EMAIL_FROM")!!
-            )
-        } else {
-            NoOpEmailSender()
-        }
+        if (usesEmailService) ResendEmailSender(
+            apiKey = System.getenv("RESEND_API_KEY") ?: "",
+            from = System.getenv("EMAIL_FROM") ?: "",
+        )
+        else NoOpEmailSender()
 
     val service = SubscriberService(
         repo = repo,
