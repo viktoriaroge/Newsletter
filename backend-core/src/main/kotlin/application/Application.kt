@@ -51,10 +51,13 @@ fun Application.module() {
     val usesEmailService = !System.getenv("RESEND_API_KEY").isNullOrBlank()
             && !System.getenv("EMAIL_FROM").isNullOrBlank()
 
+    val templateLoader = RemoteTemplateLoader()
+
     val emailSender: EmailSender =
         if (usesEmailService) ResendEmailSender(
             apiKey = System.getenv("RESEND_API_KEY") ?: "",
             from = System.getenv("EMAIL_FROM") ?: "",
+            templateLoader = templateLoader,
         )
         else NoOpEmailSender()
 
@@ -68,7 +71,6 @@ fun Application.module() {
     )
 
     val limiter = FixedWindowRateLimiter(limit = 5, windowSeconds = 60)
-    val templateLoader = RemoteTemplateLoader()
 
     configureRoutes(service, limiter, templateLoader, publicBaseUrl)
 }

@@ -1,5 +1,8 @@
 package com.viroge.newsletter.domain.email
 
+import com.viroge.newsletter.api.templates.TemplateLoader
+import com.viroge.newsletter.api.templates.renderTemplate
+import com.viroge.newsletter.domain.email.DefaultEmailTemplates.WELCOME_FALLBACK_HTML
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -13,10 +16,12 @@ import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import java.time.Year
 
 class ResendEmailSender(
     private val apiKey: String,
-    private val from: String
+    private val from: String,
+    private val templateLoader: TemplateLoader,
 ) : EmailSender {
 
     private val client = HttpClient(CIO) {
@@ -30,21 +35,53 @@ class ResendEmailSender(
         val from: String,
         val to: List<String>,
         val subject: String,
-        val html: String
+        val html: String,
+        val text: String,
     )
 
     override suspend fun sendWelcomeEmail(to: String, pdfUrl: String, unsubscribeUrl: String) {
-        val html = """
-            <p>Thanks for subscribing!</p>
-            <p>Here’s your download: <a href="$pdfUrl">Download PDF</a></p>
-            <p>If you ever want to unsubscribe: <a href="$unsubscribeUrl">Unsubscribe</a></p>
-        """.trimIndent()
+        val templateUrl = System.getenv("WELCOME_EMAIL_TEMPLATE_URL")
+        val websiteUrl = System.getenv("WEBSITE_URL").orEmpty()
+        val logoUrl = System.getenv("LOGO_URL").orEmpty()
+        val year = Year.now().value.toString()
+
+        val logoBlock =
+            if (logoUrl.isBlank()) ""
+            else """
+                <div style="margin-bottom:14px;">
+                  <img src="$logoUrl" width="44" height="44" alt="Logo"
+                       style="display:block; border-radius:10px; object-fit:cover;" />
+                </div>
+                """.trimIndent()
+
+        val htmlTemplate = templateLoader.loadOrDefault(templateUrl, WELCOME_FALLBACK_HTML)
+
+        val html = renderTemplate(
+            htmlTemplate,
+            mapOf(
+                "PDF_URL" to pdfUrl,
+                "UNSUBSCRIBE_URL" to unsubscribeUrl,
+                "WEBSITE_URL" to websiteUrl,
+                "YEAR" to year,
+                "LOGO_BLOCK" to logoBlock
+            )
+        )
+
+        // Optional: plain-text fallback (Resend supports text)
+        val text =
+            """
+            Thank you for subscribing!
+            
+            Download: $pdfUrl
+            Unsubscribe: $unsubscribeUrl
+            """.trimIndent()
 
         val payload = ResendEmailRequest(
             from = from,
             to = listOf(to),
-            subject = "Welcome! Your download inside",
-            html = html
+            subject = "Welcome",
+            html = html,
+            text = text,
         )
 
         client.post("https://api.resend.com/emails") {
