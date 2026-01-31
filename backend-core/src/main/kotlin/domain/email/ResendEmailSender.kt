@@ -44,16 +44,6 @@ class ResendEmailSender(
         val websiteUrl = System.getenv("WEBSITE_URL").orEmpty()
         val logoUrl = System.getenv("LOGO_URL").orEmpty()
         val year = Year.now().value.toString()
-
-        val logoBlock =
-            if (logoUrl.isBlank()) ""
-            else """
-                <div style="margin-bottom:14px;">
-                  <img src="$logoUrl" width="44" height="44" alt="Logo"
-                       style="display:block; border-radius:10px; object-fit:cover;" />
-                </div>
-                """.trimIndent()
-
         val htmlTemplate = templateLoader.loadOrDefault(templateUrl, WELCOME_FALLBACK_HTML)
 
         val html = renderTemplate(
@@ -63,7 +53,7 @@ class ResendEmailSender(
                 "UNSUBSCRIBE_URL" to unsubscribeUrl,
                 "WEBSITE_URL" to websiteUrl,
                 "YEAR" to year,
-                "LOGO_BLOCK" to logoBlock
+                "LOGO_BLOCK" to logoUrl
             )
         )
 
