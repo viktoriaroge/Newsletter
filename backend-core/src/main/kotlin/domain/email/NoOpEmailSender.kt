@@ -1,7 +1,7 @@
 package com.viroge.newsletter.domain.email
 
 class NoOpEmailSender : EmailSender {
-    override suspend fun sendWelcomeEmail(to: String, pdfUrl: String, unsubscribeUrl: String) {
+    override suspend fun sendWelcomeEmail(to: String, pdfUrl: String, epubUrl: String, unsubscribeUrl: String) {
         // intentionally no-op (optional: log)
     }
 }

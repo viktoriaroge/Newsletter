@@ -6,7 +6,7 @@ class FakeEmailSender : EmailSender {
     val sent = mutableListOf<Sent>()
     var shouldFail: Boolean = false
 
-    override suspend fun sendWelcomeEmail(to: String, pdfUrl: String, unsubscribeUrl: String) {
+    override suspend fun sendWelcomeEmail(to: String, pdfUrl: String, epubUrl: String, unsubscribeUrl: String) {
         if (shouldFail) error("Simulated email failure")
         sent += Sent(to, pdfUrl, unsubscribeUrl)
     }

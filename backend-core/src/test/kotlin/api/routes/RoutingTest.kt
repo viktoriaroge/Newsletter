@@ -42,6 +42,7 @@ class RoutingTest {
             emailSender = emailSender,
             publicBaseUrl = "http://localhost:8080",
             pdfUrl = "https://example.com/file.pdf",
+            epubUrl = "https://example.com/file.epub",
             unsubscribeSecret = "test-secret-123"
         )
 
@@ -73,6 +74,7 @@ class RoutingTest {
             emailSender = emailSender,
             publicBaseUrl = "http://localhost:8080",
             pdfUrl = "https://example.com/file.pdf",
+            epubUrl = "https://example.com/file.epub",
             unsubscribeSecret = "test-secret-123"
         )
 
@@ -100,6 +102,7 @@ class RoutingTest {
             emailSender = emailSender,
             publicBaseUrl = "http://localhost:8080",
             pdfUrl = "https://example.com/file.pdf",
+            epubUrl = "https://example.com/file.epub",
             unsubscribeSecret = "test-secret-123"
         )
 
@@ -137,6 +140,7 @@ class RoutingTest {
             emailSender = emailSender,
             publicBaseUrl = "http://localhost:8080",
             pdfUrl = "https://example.com/file.pdf",
+            epubUrl = "https://example.com/file.epub",
             unsubscribeSecret = "test-secret-123"
         )
 
@@ -171,6 +175,7 @@ class RoutingTest {
             emailSender = emailSender,
             publicBaseUrl = "http://localhost:8080",
             pdfUrl = "https://example.com/file.pdf",
+            epubUrl = "https://example.com/file.epub",
             unsubscribeSecret = "test-secret-123"
         )
 
@@ -211,6 +216,7 @@ class RoutingTest {
             emailSender = FakeEmailSender(),
             publicBaseUrl = "http://localhost:8080",
             pdfUrl = "https://example.com/file.pdf",
+            epubUrl = "https://example.com/file.epub",
             unsubscribeSecret = "test-secret-123"
         )
 

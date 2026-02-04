@@ -39,7 +39,7 @@ class ResendEmailSender(
         val text: String,
     )
 
-    override suspend fun sendWelcomeEmail(to: String, pdfUrl: String, unsubscribeUrl: String) {
+    override suspend fun sendWelcomeEmail(to: String, pdfUrl: String, epubUrl: String, unsubscribeUrl: String) {
         val templateUrl = System.getenv("WELCOME_EMAIL_TEMPLATE_URL")
         val websiteUrl = System.getenv("WEBSITE_URL").orEmpty()
         val logoUrl = System.getenv("LOGO_URL").orEmpty()
@@ -50,10 +50,11 @@ class ResendEmailSender(
             htmlTemplate,
             mapOf(
                 "PDF_URL" to pdfUrl,
+                "EPUB_URL" to epubUrl,
                 "UNSUBSCRIBE_URL" to unsubscribeUrl,
                 "WEBSITE_URL" to websiteUrl,
                 "YEAR" to year,
-                "LOGO_BLOCK" to logoUrl
+                "LOGO_BLOCK" to logoUrl,
             )
         )
 

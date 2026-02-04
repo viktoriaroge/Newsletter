@@ -67,6 +67,7 @@ fun Application.module() {
         emailSender = emailSender,
         publicBaseUrl = publicBaseUrl,
         pdfUrl = System.getenv("PDF_URL") ?: "",
+        epubUrl = System.getenv("EPUB_URL") ?: "",
         unsubscribeSecret = System.getenv("UNSUBSCRIBE_SECRET") ?: "dev-secret"
     )
 

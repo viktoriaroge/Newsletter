@@ -24,6 +24,7 @@ class SubscriberServiceTest {
             emailSender = emailSender,
             publicBaseUrl = "http://localhost:8080",
             pdfUrl = "https://example.com/file.pdf",
+            epubUrl = "https://example.com/file.epub",
             unsubscribeSecret = "test-secret-1234567890"
         )
         return service to emailSender
@@ -48,6 +49,7 @@ class SubscriberServiceTest {
             emailSender = email,
             publicBaseUrl = "http://localhost:8080",
             pdfUrl = "https://example.com/file.pdf",
+            epubUrl = "https://example.com/file.epub",
             unsubscribeSecret = "test-secret-1234567890"
         )
 
@@ -87,6 +89,7 @@ class SubscriberServiceTest {
             emailSender = emailSender,
             publicBaseUrl = "http://localhost:8080",
             pdfUrl = "https://example.com/file.pdf",
+            epubUrl = "https://example.com/file.epub",
             unsubscribeSecret = "test-secret-123"
         )
 
@@ -109,6 +112,7 @@ class SubscriberServiceTest {
             emailSender = emailSender,
             publicBaseUrl = "http://localhost:8080",
             pdfUrl = "https://example.com/file.pdf",
+            epubUrl = "https://example.com/file.epub",
             unsubscribeSecret = "test-secret-123"
         )
 

@@ -13,6 +13,7 @@ class SubscriberService(
     private val emailSender: EmailSender,
     private val publicBaseUrl: String,
     private val pdfUrl: String,
+    private val epubUrl: String,
     private val unsubscribeSecret: String
 ) {
 
@@ -74,6 +75,7 @@ class SubscriberService(
                 emailSender.sendWelcomeEmail(
                     to = email,
                     pdfUrl = pdfUrl,
+                    epubUrl = epubUrl,
                     unsubscribeUrl = unsubscribeUrl
                 )
                 repo.updateLastWelcomeSentAt(subscriber.id, now)
