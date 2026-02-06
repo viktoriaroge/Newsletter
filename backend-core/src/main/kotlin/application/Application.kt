@@ -71,7 +71,7 @@ fun Application.module() {
         unsubscribeSecret = System.getenv("UNSUBSCRIBE_SECRET") ?: "dev-secret"
     )
 
-    val limiter = FixedWindowRateLimiter(limit = 5, windowSeconds = 60)
+    val limiter = FixedWindowRateLimiter(limit = 10, windowSeconds = 60)
 
     configureRoutes(service, limiter, templateLoader, publicBaseUrl)
 }
