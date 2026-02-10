@@ -19,4 +19,5 @@ primary_region = 'fra'
 [[vm]]
   cpu_kind = 'shared'
   cpus = 1
-  memory_mb = 512
+  memory_mb = 256
+# Set memory_mb = 512 if and only if there's an OOM somewhere in the logs.

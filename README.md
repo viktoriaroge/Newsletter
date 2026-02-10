@@ -1,5 +1,20 @@
 # Newsletter
 
+![Made With Love](https://img.shields.io/badge/Made%20with-%E2%9D%A4-black)
+![Open Source](https://img.shields.io/badge/Open%20Source-Yes-green)
+![License](https://img.shields.io/badge/license-MIT-purple.svg)
+
+![Maintained](https://img.shields.io/badge/Maintained-Yes-success)
+![Status](https://img.shields.io/badge/status-Production%20Ready-blue.svg)
+
+![Language](https://img.shields.io/badge/language-Kotlin-yellow.svg)
+![Backend](https://img.shields.io/badge/backend-Ktor-orange.svg)
+![Database](https://img.shields.io/badge/database-PostgreSQL-red.svg)
+
+![Platform](https://img.shields.io/badge/deploy-Fly.io-purple.svg)
+![Supabase](https://img.shields.io/badge/storage-Supabase-3ECF8E)
+![Email](https://img.shields.io/badge/email-Resend-black.svg)
+
 A lightweight, self-hostable newsletter and audience management backend built with Ktor, PostgreSQL, and Resend, designed for easy integration with website builders such as Squarespace.
 
 This project provides:
